@@ -30,6 +30,7 @@ file_list_column = [
     [
 
         sg.Text('Enter pdb id    '), sg.InputText(size=(25, 1), key="-PDB ID-"),
+
         sg.Button('Submit id', size=(13, 1), key='-Submit id-'),
 
     ],
@@ -39,6 +40,8 @@ file_list_column = [
 image_viewer_column = [
 
     [sg.Text("PisaPy is a Python Wrapper for PDBePISA")],
+    [sg.Output(size=(50,10), key='-OUTPUT-')],
+    [sg.Button('Clear'), sg.Button('Exit')]
 
 ]
 
@@ -102,6 +105,8 @@ while True:
         print(values['-PDB ID-'])
     if event == '-Submit files-':
         print(values['-FILE LIST-'])
+    if event == 'Clear':
+        window['-OUTPUT-'].update('')
 
 
 window.close()
