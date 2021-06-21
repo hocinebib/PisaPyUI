@@ -104,7 +104,7 @@ def running():
 
     while True:
         event, values = window.read()
-        print(event, values)
+        #print(event, values)
         #print('-'*60)
 
         if event == "Exit" or event == sg.WIN_CLOSED:
@@ -132,7 +132,14 @@ def running():
 
         if event == '-Submit files-':
             #rppy.run_pisa(1, values['-FOLDER-']+'/')
-            rppy.parse_files(1)
+            dico = {}
+            for k in values:
+                for k in values:
+                    if type(k) == str:
+                        if '-PC' in k:
+                            dico[values[k].split()[0]] = values[k].split()[1]
+
+            rppy.parse_files(1, dico)
             print(values['-FOLDER-'])
             #print(values['slider1'])
             #print(values['slider2'])
