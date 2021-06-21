@@ -1,7 +1,22 @@
 import PySimpleGUI as sg
 import os.path
 
+sg.theme('SystemDefaultForReal')
+ttk_style = 'alt'
+sg.change_look_and_feel('DarkBlue')
+
+
 file_list_column = [
+
+    [
+
+        sg.Text("Naccess bin path"),
+
+        sg.In(size=(25, 1), enable_events=True, key="-FOLDER1-"),
+
+        sg.FolderBrowse(size=(13, 1)),
+
+    ],
 
     [
 
@@ -23,7 +38,7 @@ file_list_column = [
 
         ),
 
-        sg.Button('Submit folder', size=(13, 1), key='-Submit files-'),
+        sg.Button('Submit folder', size=(13, 1), key='-Submit files-', use_ttk_buttons=True),
 
     ],
 
@@ -31,17 +46,29 @@ file_list_column = [
 
         sg.Text('Enter pdb id    '), sg.InputText(size=(25, 1), key="-PDB ID-"),
 
-        sg.Button('Submit id', size=(13, 1), key='-Submit id-'),
+        sg.Button('Submit id', size=(13, 1), key='-Submit id-', use_ttk_buttons=True),
 
     ],
+
+    [sg.Text(' '*10)],
+
+    [sg.HorizontalSeparator()],
+
+    [sg.T(' '*5), sg.T('Accessibility cutoff', justification='center'),
+    sg.T(' '*2), sg.T('Conservation cutoff', justification='center')],
+
+    [sg.T(' '*11),
+    sg.Slider(range=(1, 100), orientation='v', size=(9, 7), default_value=70, key='slider1'),
+    sg.T(' '*18),
+    sg.Slider(range=(0.0,1.0), orientation='v', resolution=.01, size=(9, 7), default_value=0.6, key='slider2')],
 
 ]
 
 image_viewer_column = [
 
     [sg.Text("PisaPy is a Python Wrapper for PDBePISA")],
-    [sg.Output(size=(50,10), key='-OUTPUT-')],
-    [sg.Button('Clear'), sg.Button('Exit')]
+    [sg.Output(size=(55,30), key='-OUTPUT-')],
+    [sg.Button('Clear', use_ttk_buttons=True), sg.Button('Exit', use_ttk_buttons=True)]
 
 ]
 
@@ -60,7 +87,8 @@ layout = [
 ]
 
 # Create the window
-window = sg.Window("PisaPy", layout)
+window = sg.Window("PisaPy", layout, ttk_theme=ttk_style)
+
 
 # Create an event loop
 while True:
@@ -103,8 +131,12 @@ while True:
 
     if event == '-Submit id-':
         print(values['-PDB ID-'])
+        print(values['slider1'])
+        print(values['slider2'])
     if event == '-Submit files-':
-        print(values['-FILE LIST-'])
+        print(values['-FOLDER-'])
+        print(values['slider1'])
+        print(values['slider2'])
     if event == 'Clear':
         window['-OUTPUT-'].update('')
 
