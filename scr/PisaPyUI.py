@@ -22,6 +22,7 @@ import RunPisaPy as rppy
 import numpy as np
 import SeqColorMap as scm
 import csv
+import traceback
 
 
 def table_from_csv(filename):
@@ -221,87 +222,94 @@ def running():
     color2 = '#0918d9'
     i = 0
 
-    while True:
-        event, values = window.read()
-        #print(event, values)
-        #print('-'*60)
+    try:
 
-        if event == "Exit" or event == sg.WIN_CLOSED:
-            break
+        while True:
+            event, values = window.read()
+    
+            if event == "Exit" or event == sg.WIN_CLOSED:
+                break
 
-        if event == "-FOLDER-":
-            folder = values["-FOLDER-"]
-            try:
-                file_list = os.listdir(folder)
-            except:
-                file_list = []
+            if event == "-FOLDER-":
+                folder = values["-FOLDER-"]
+                try:
+                    file_list = os.listdir(folder)
+                except:
+                    file_list = []
 
-            fnames = [f for f in file_list if os.path.isfile(os.path.join(folder, f)) and f.lower().endswith(".pdb")]
-            window["-FILE LIST-"].update(fnames)
+                fnames = [f for f in file_list if os.path.isfile(os.path.join(folder, f)) and f.lower().endswith(".pdb")]
+                window["-FILE LIST-"].update(fnames)
 
-        if event == '-Submit id-':
-            if (values['-PDB ID-'] == '') | (values['-PDB ID-'] == 'Please enter a pdb ID'):
-                window.FindElement('-PDB ID-').Update('Please enter a pdb ID', text_color='red')
-            else :
-                rppy.run_pisa(0, values['-PDB ID-'], values['-RES-']+'/')
-                rppy.parse_files(0, values['-RES-']+'/')
-                rppy.run_naccess(0, values['-FOLDER-']+'/', values['-FOLDER1-']+'/naccess', values['-RES-']+'/')
-                #print(values['-PDB ID-'])
-                #print(values['slider1'])
-                #print(values['slider2'])
+            if event == '-Submit id-':
+                if (values['-PDB ID-'] == '') | (values['-PDB ID-'] == 'Please enter a pdb ID'):
+                    window.FindElement('-PDB ID-').Update('Please enter a pdb ID', text_color='red')
+                else :
+                    rppy.run_pisa(0, values['-PDB ID-'], values['-RES-']+'/')
+                    dico = {}
+                    for k in values:
+                        for k in values:
+                            if type(k) == str:
+                                if '-PC' in k:
+                                    dico[values[k].split()[0]] = values[k].split()[1]
 
-        if event == '-Submit files-':
-            print('-'*60)
-            rppy.run_pisa(1, values['-FOLDER-']+'/', values['-RES-']+'/')
-            dico = {}
-            for k in values:
+                    rppy.parse_files(0, dico, values['-RES-']+'/')
+                    rppy.run_naccess(0, values['-PDB ID-'], values['-FOLDER1-']+'/naccess', values['-RES-']+'/')
+                    rppy.run_res_conserv(0, values['-PDB ID-'], dico, values['-RES-']+'/')
+
+            if event == '-Submit files-':
+                print('-'*60)
+                rppy.run_pisa(1, values['-FOLDER-']+'/', values['-RES-']+'/')
+                dico = {}
                 for k in values:
-                    if type(k) == str:
-                        if '-PC' in k:
-                            dico[values[k].split()[0]] = values[k].split()[1]
+                    for k in values:
+                        if type(k) == str:
+                            if '-PC' in k:
+                                dico[values[k].split()[0]] = values[k].split()[1]
 
-            rppy.parse_files(1, dico, values['-RES-']+'/')
-            rppy.run_naccess(1, values['-FOLDER-']+'/', values['-FOLDER1-']+'/naccess', values['-RES-']+'/')
-            rppy.run_res_conserv(1, values['-FOLDER-']+'/', dico, values['-RES-']+'/')
-            print('-'*60)
-            #print(values['slider1'])
-            #print(values['slider2'])
+                rppy.parse_files(1, dico, values['-RES-']+'/')
+                rppy.run_naccess(1, values['-FOLDER-']+'/', values['-FOLDER1-']+'/naccess', values['-RES-']+'/')
+                rppy.run_res_conserv(1, values['-FOLDER-']+'/', dico, values['-RES-']+'/')
+                print('-'*60)
 
-        if event == 'Clear':
-            window['-OUTPUT-'].update('')
+            if event == 'Clear':
+                window['-OUTPUT-'].update('')
 
-        if event == 'Color':
-            colors = tk.colorchooser.askcolor(
-                    parent=chooser.ParentForm.TKroot, color=color)
-            color = colors[1]
-            chooser.Update(button_color=(color, color))
+            if event == 'Color':
+                colors = tk.colorchooser.askcolor(
+                        parent=chooser.ParentForm.TKroot, color=color)
+                color = colors[1]
+                chooser.Update(button_color=(color, color))
 
-        if event == 'Color2':
-            colors2 = tk.colorchooser.askcolor(
-                    parent=chooser.ParentForm.TKroot, color=color2)
-            color2 = colors2[1]
-            chooser2.Update(button_color=(color2, color2))
+            if event == 'Color2':
+                colors2 = tk.colorchooser.askcolor(
+                        parent=chooser.ParentForm.TKroot, color=color2)
+                color2 = colors2[1]
+                chooser2.Update(button_color=(color2, color2))
 
-        if event == '-ADDPROT-':
-            window.extend_layout(window['-COL1-'], [[sg.T('Protein chains'), sg.I(key=f'-PC-{i}-')]])
-            i += 1
+            if event == '-ADDPROT-':
+                window.extend_layout(window['-COL1-'], [[sg.T('Protein chains'), sg.I(key=f'-PC-{i}-')]])
+                i += 1
 
-        if event == '-DRAW-':
-            if (values['-CHAIN-'] == '') | (values['-CHAIN-'] == 'Please enter a chain'):
-                window.FindElement('-CHAIN-').Update('Please enter a chain', text_color='red')
-            else :
-                scm.cutoff_tables(values['-RESDIR-']+'/', values['slider2'], values['slider1'], values['-CHAIN-'],
-                    color, color2)
-                window["-IMAGE-"].update(filename=values['-RESDIR-']+'/'+values['-CHAIN-']+'_ColorMap.png')
+            if event == '-DRAW-':
+                if (values['-CHAIN-'] == '') | (values['-CHAIN-'] == 'Please enter a chain'):
+                    window.FindElement('-CHAIN-').Update('Please enter a chain', text_color='red')
+                else :
+                    scm.cutoff_tables(values['-RESDIR-']+'/', values['slider2'], values['slider1'], values['-CHAIN-'],
+                        color, color2)
+                    window["-IMAGE-"].update(filename=values['-RESDIR-']+'/'+values['-CHAIN-']+'_ColorMap.png')
 
-        if event == '-DISTAB-':
-            if (values['-CSVF-'] == '') | (not values['-CSVF-'].endswith('.csv')):
-                window.FindElement('-CSVF-').Update('Please choose a csv file', text_color='red')
-            else:
-                data, header_list = table_from_csv(values['-CSVF-'])
-                window['-TABLE-'].update(values=data)
+            if event == '-DISTAB-':
+                if (values['-CSVF-'] == '') | (not values['-CSVF-'].endswith('.csv')):
+                    window.FindElement('-CSVF-').Update('Please choose a csv file', text_color='red')
+                else:
+                    data, header_list = table_from_csv(values['-CSVF-'])
+                    window['-TABLE-'].update(values=data)
 
-    window.close()
+        window.close()
+    except Exception as e:
+        tb = traceback.format_exc()
+        sg.Print(f'An error happened.  Here is the info:', e, tb)
+        sg.popup_error(f'AN EXCEPTION OCCURRED!', e, tb)
 
 
 if __name__ == '__main__':

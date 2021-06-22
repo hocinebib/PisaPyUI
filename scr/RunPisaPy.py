@@ -133,8 +133,9 @@ def run_naccess(TYPE, PDB_ID, NACCESS_PATH, RES_PATH):
         print('- Downloading pdb files and calculating accessibility :')
 
         for protein in PDB_ID.split():
+            print(protein)
 
-            dpf.download_pdb(protein)
+            dpf.download_pdb(protein, RES_PATH)
 
             dic = an.interacting_chains(RES_PATH+protein+'.pdb/'+protein+"_InteractionSheet.csv")
 
@@ -170,7 +171,7 @@ def run_res_conserv(TYPE, PDB_ID, DICO_CHAINS, RES_PATH):
                 print('Done.')
             
                 print("2)- Finding homologous sequences with blastp on :", p)
-                ba.run_blastp(ba.get_fasta(PID)[0].seq, PID, RES_PATH)
+                ba.run_blastp(ba.get_fasta(PID)[0].seq, PID, RES_PATH+protein+'.pdb/')
                 FASTA = RES_PATH+protein+'.pdb/'+PID+'_HomolSeq.fasta'
                 print('Done.')
 

@@ -19,48 +19,48 @@ import requests
 import os
 
 
-def download_pdb(file_name):
+def download_pdb(file_name, res_path):
     """
     """
 
     url = 'https://files.rcsb.org/download/'+file_name+'.pdb'
     r = requests.get(url, allow_redirects=True)
 
-    if not os.path.exists('Results/'+file_name+'.pdb'):
-        os.makedirs('Results/'+file_name+'.pdb')
+    if not os.path.exists(res_path+file_name+'.pdb'):
+        os.makedirs(res_path+file_name+'.pdb')
 
-    open('Results/'+file_name+'.pdb/'+file_name+'.pdb', 'wb').write(r.content)
+    open(res_path+file_name+'.pdb/'+file_name+'.pdb', 'wb').write(r.content)
 
 
-def download_fasta(file_name):
+def download_fasta(file_name, res_path):
     """
     """
 
     url = 'https://www.rcsb.org/fasta/entry/'+file_name+'/display'
     r = requests.get(url, allow_redirects=True)
 
-    if not os.path.exists('Results/'+file_name):
-        os.makedirs('Results/'+file_name)
+    if not os.path.exists(res_path+file_name):
+        os.makedirs(res_path+file_name)
 
-    open('Results/'+file_name+'/'+file_name+'.fasta', 'wb').write(r.content)
+    open(res_path+file_name+'/'+file_name+'.fasta', 'wb').write(r.content)
 
 
-def parse_fasta(file_name):
+def parse_fasta(file_name, res_path):
     """
     """
 
-    f = open('Results/dico_'+file_name+'.txt', 'w')
+    f = open(res_path+'/dico_'+file_name+'.txt', 'w')
     f.write('{')
     i = 0
 
-    with open('Results/'+file_name+'.fasta', 'r') as f_fasta:
+    with open(res_path+file_name+'.fasta', 'r') as f_fasta:
         for line in f_fasta:
             if line.startswith('>'):
                 if i > 0:
                     f2.close()
                 desc = line.split('|')
                 chains = desc[1].split('Chains ')[1].split(',')
-                f2 = open('Results/'+desc[0][1:]+'.fasta', 'w')
+                f2 = open(res_path+desc[0][1:]+'.fasta', 'w')
                 f2.write(line)
                 if i > 0:
                     f.write(', ')
@@ -71,7 +71,7 @@ def parse_fasta(file_name):
                 f.write('\"'+desc[2]+'\": \"'+''.join(chains)+'\"')
                 i += 1
             else :
-                f2 = open('Results/'+desc[0][1:]+'.fasta', 'a')
+                f2 = open(res_path+desc[0][1:]+'.fasta', 'a')
                 f2.write(line)
     
     f2.close()
