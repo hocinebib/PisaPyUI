@@ -19,6 +19,8 @@ import tkinter as tk
 import PySimpleGUI as sg
 import os.path
 import RunPisaPy as rppy
+import numpy as np
+import SeqColorMap as scm
 
 
 def create_layouts():
@@ -29,6 +31,10 @@ def create_layouts():
     sg.change_look_and_feel('DarkBlue')
 
     tab1_left = [
+
+        [sg.Text('You can either run PisaPy using pdb IDs or pdb files')],
+
+        [sg.HorizontalSeparator()],
 
         [sg.Text("\n"),
          sg.Text("Naccess bin path  "),
@@ -51,18 +57,6 @@ def create_layouts():
 
         [sg.HorizontalSeparator()],
 
-        [sg.Text(' '*10)],
-
-        [sg.T(' '*5), sg.T('  Accessibility cutoff', justification='center'),
-        sg.T(' '*2), sg.T('  Conservation cutoff', justification='center')],
-
-        [sg.T(' '*13),
-        sg.Slider(range=(0, 100), orientation='v', size=(8, 9), default_value=70, key='slider1'),
-        sg.T(' '*18),
-        sg.Slider(range=(0.0,1.0), orientation='v', resolution=.01, size=(8, 9), default_value=0.6, key='slider2')],
-
-        [sg.HorizontalSeparator()],
-
         [sg.Text('Click to add a protein name'), sg.B('+', key='-ADDPROT-')],
         [sg.Frame('', [[sg.T('Protein and chains')]], key='-COL1-')],
 
@@ -76,7 +70,7 @@ def create_layouts():
     tab1_right = [
 
         [sg.Text("PisaPy is a Python Wrapper for PDBePISA")],
-        [sg.Output(size=(50,40), key='-OUTPUT-')],
+        [sg.Output(size=(50,45), key='-OUTPUT-')],
         [sg.Button('Clear', use_ttk_buttons=True), sg.Button('Exit', use_ttk_buttons=True)]
 
     ]
@@ -91,10 +85,39 @@ def create_layouts():
 
     ]
 
+    column = [[sg.Image(filename='Results/MexA_ext_1_6.pdb/E_ColorMap.png', key="-IMAGE-")]]
+
     tab3 = [
 
-        [sg.Text("Empty for the moment")],
-        [sg.Button("", size=(1, 1), button_color=('#1f77b4', '#1f77b4'), key='Color')],
+        [sg.Text('Select the protein and the chain for witch the ColorMap will be generated')],
+
+        [sg.HorizontalSeparator()],
+
+        [sg.Text("\n"),
+         sg.Text("Results directory"),
+         sg.In(size=(25, 1), enable_events=True, key="-RESDIR-"),
+         sg.FolderBrowse(size=(11, 1)),
+         sg.Text(' '*10+'Chain'), sg.InputText(size=(25, 1), key="-CHAIN-"),],
+        [sg.Button("", size=(1, 1), button_color=('#117e39', '#117e39'), key='Color'), sg.Text("high conservation color")],
+        [sg.Button("", size=(1, 1), button_color=('#2006d9', '#2006d9'), key='Color2'), sg.Text("high accessibility color")],
+
+        [sg.HorizontalSeparator()],
+
+        [sg.Text(' '*10)],
+
+        [sg.T(' '*5), sg.T('  Accessibility cutoff', justification='center'),
+        sg.T(' '*2), sg.T('  Conservation cutoff', justification='center')],
+
+        [sg.T(' '*13),
+        sg.Slider(range=(0, 100), orientation='v', size=(8, 9), default_value=70, key='slider1'),
+        sg.T(' '*18),
+        sg.Slider(range=(0.0,1.0), orientation='v', resolution=.01, size=(8, 9), default_value=0.6, key='slider2'),
+        sg.T(' '*30),
+        sg.Button('Plot', size=(13, 1), key='-DRAW-', use_ttk_buttons=True),],
+
+        [sg.HorizontalSeparator()],
+
+        [sg.Column(column, size=(860, 250), scrollable=True)]
 
     ]
 
@@ -149,13 +172,13 @@ def create_layouts():
 
         [sg.Text(' '*110+'2021')],
 
-    ], size = (835,520), scrollable=True)]
+    ], size = (850,560), scrollable=True)]
 
     ]
 
-    layout = [[sg.TabGroup([[sg.Tab('PisaPy Params', tab1), sg.Tab('Results', tab3), sg.Tab('Credit', tab4)]])]] 
+    layout = [[sg.TabGroup([[sg.Tab('PisaPy Params', tab1), sg.Tab('SequenceColorMap', tab3), sg.Tab('Credit', tab4)]])]] 
 
-    return sg.Window("PisaPy", layout, ttk_theme=ttk_style)
+    return sg.Window("PisaPy", layout, ttk_theme=ttk_style, finalize=True)
 
 
 def running():
@@ -163,7 +186,9 @@ def running():
     """
     window = create_layouts()
     chooser = window['Color']
-    color = None
+    color = '#039136'
+    chooser2 = window['Color2']
+    color2 = '#0918d9'
     i = 0
 
     while True:
@@ -221,9 +246,23 @@ def running():
             color = colors[1]
             chooser.Update(button_color=(color, color))
 
+        if event == 'Color2':
+            colors2 = tk.colorchooser.askcolor(
+                    parent=chooser.ParentForm.TKroot, color=color2)
+            color2 = colors2[1]
+            chooser2.Update(button_color=(color2, color2))
+
         if event == '-ADDPROT-':
             window.extend_layout(window['-COL1-'], [[sg.T('Protein chains'), sg.I(key=f'-PC-{i}-')]])
             i += 1
+
+        if event == '-DRAW-':
+            if (values['-CHAIN-'] == '') | (values['-CHAIN-'] == 'Please enter a chain'):
+                window.FindElement('-CHAIN-').Update('Please enter a chain', text_color='red')
+            else :
+                scm.cutoff_tables(values['-RESDIR-']+'/', values['slider2'], values['slider1'], values['-CHAIN-'],
+                    color, color2)
+                window["-IMAGE-"].update(filename=values['-RESDIR-']+'/'+values['-CHAIN-']+'_ColorMap.png')
 
     window.close()
 
