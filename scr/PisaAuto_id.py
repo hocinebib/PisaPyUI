@@ -124,7 +124,7 @@ def launch_pdb_id(driver, pdb_id):
 
     return driver
 
-def download_xmls(driver, pdb_id):
+def download_xmls(driver, pdb_id, res_path):
     """
     The function to download the xml files.
 
@@ -151,13 +151,13 @@ def download_xmls(driver, pdb_id):
     driver.switch_to.window(driver.window_handles[1])
     xml = driver.current_url
 
-    if not os.path.exists('Results'):
-        os.makedirs('Results')
+    if not os.path.exists(res_path):
+        os.makedirs(res_path)
 
-    if not os.path.exists('Results/xml_files'+pdb_id):
-        os.makedirs('Results/xml_files'+pdb_id)
+    if not os.path.exists(res_path+'xml_files'+pdb_id):
+        os.makedirs(res_path+'xml_files'+pdb_id)
 
-    with open('Results/xml_files'+pdb_id+'/'+xml.split('/')[-1], 'w') as f:
+    with open(res_path+'xml_files'+pdb_id+'/'+xml.split('/')[-1], 'w') as f:
         f.write(driver.page_source)
 
     time.sleep(3)
@@ -170,7 +170,7 @@ def download_xmls(driver, pdb_id):
 
     inter_lst = []
 
-    with open('Results/xml_files'+pdb_id+'/'+xml.split('/')[-1], "r") as f_xml:
+    with open(res_path+'xml_files'+pdb_id+'/'+xml.split('/')[-1], "r") as f_xml:
         for line in f_xml:
             if line.strip().startswith("<INTERFACENO>"):
                 inter_lst.append(line[13:15].strip("<"))
@@ -198,7 +198,7 @@ def download_xmls(driver, pdb_id):
             driver.switch_to.window(driver.window_handles[1])
             xml = driver.current_url
 
-            with open('Results/xml_files'+pdb_id+'/'+xml.split('/')[-1], 'w') as f:
+            with open(res_path+'xml_files'+pdb_id+'/'+xml.split('/')[-1], 'w') as f:
                 f.write(driver.page_source)
 
             time.sleep(3)
