@@ -134,10 +134,9 @@ def running():
             #rppy.run_pisa(1, values['-FOLDER-']+'/')
             dico = {}
             for k in values:
-                for k in values:
-                    if type(k) == str:
-                        if '-PC' in k:
-                            dico[values[k].split()[0]] = values[k].split()[1]
+                if type(k) == str:
+                    if '-PC' in k:
+                        dico[values[k].split()[0]] = values[k].split()[1]
 
             rppy.parse_files(1, dico)
             print(values['-FOLDER-'])
