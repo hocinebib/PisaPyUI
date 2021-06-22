@@ -13,3 +13,6 @@ The interface looks like this :
 
 * Sequence Color Map :
 ![SeqColorMap](img/PisaPyUI_screenshot2.png)
+
+* Table display :
+![SeqColorMap](img/PisaPyUI_screenshot3.png)

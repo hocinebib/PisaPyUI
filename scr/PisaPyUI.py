@@ -21,6 +21,24 @@ import os.path
 import RunPisaPy as rppy
 import numpy as np
 import SeqColorMap as scm
+import csv
+
+
+def table_from_csv(filename):
+    """
+    Hirschdude
+    https://stackoverflow.com/questions/58378205/cannot-build-table-with-pysimplegui
+    """
+    data = []
+    header_list = []
+
+    if filename is not None:
+        with open(filename, "r") as infile:
+            reader = csv.reader(infile)
+            header_list = next(reader)
+            data = list(reader)
+
+    return data, header_list
 
 
 def create_layouts():
@@ -85,7 +103,7 @@ def create_layouts():
 
     ]
 
-    column = [[sg.Image(filename='Results/MexA_ext_1_6.pdb/E_ColorMap.png', key="-IMAGE-")]]
+    column = [[sg.Image(filename='other_files/empty_ColorMap.png', key="-IMAGE-")]]
 
     tab3 = [
 
@@ -117,7 +135,7 @@ def create_layouts():
 
         [sg.HorizontalSeparator()],
 
-        [sg.Column(column, size=(860, 250), scrollable=True)]
+        [sg.Column(column, size=(860, 230), scrollable=True)]
 
     ]
 
@@ -176,7 +194,19 @@ def create_layouts():
 
     ]
 
-    layout = [[sg.TabGroup([[sg.Tab('PisaPy Params', tab1), sg.Tab('SequenceColorMap', tab3), sg.Tab('Credit', tab4)]])]] 
+    data, header_list = table_from_csv('other_files/empty_csv.csv')
+
+    tab5 = [
+
+        [sg.Text("Select CSV file to display"), sg.Input(key='-CSVF-'), sg.FileBrowse('Choose',
+            file_types=(("CSV Files","*.csv"),))],[sg.Button("Display", key='-DISTAB-', use_ttk_buttons=True)],
+        [sg.Table(values=data, headings=header_list,
+            auto_size_columns=True, justification='left', num_rows=45, key='-TABLE-')]
+
+    ]
+
+    layout = [[sg.TabGroup([[sg.Tab('PisaPy Params', tab1), sg.Tab('SequenceColorMap', tab3),
+        sg.Tab('CSV', tab5), sg.Tab('Credit', tab4)]])]] 
 
     return sg.Window("PisaPy", layout, ttk_theme=ttk_style, finalize=True)
 
@@ -263,6 +293,13 @@ def running():
                 scm.cutoff_tables(values['-RESDIR-']+'/', values['slider2'], values['slider1'], values['-CHAIN-'],
                     color, color2)
                 window["-IMAGE-"].update(filename=values['-RESDIR-']+'/'+values['-CHAIN-']+'_ColorMap.png')
+
+        if event == '-DISTAB-':
+            if (values['-CSVF-'] == '') | (not values['-CSVF-'].endswith('.csv')):
+                window.FindElement('-CSVF-').Update('Please choose a csv file', text_color='red')
+            else:
+                data, header_list = table_from_csv(values['-CSVF-'])
+                window['-TABLE-'].update(values=data)
 
     window.close()
 
