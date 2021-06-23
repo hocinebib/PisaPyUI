@@ -72,8 +72,12 @@ def colormap_sequence(conserv_df, conserv_cutoff, interaction_df, access_solo_df
     ax5.set_yticklabels(ax5.get_yticklabels(), rotation=0, fontsize=8)
     ax6.set_yticklabels(ax6.get_yticklabels(), rotation=0, fontsize=8)
 
-    #a = ScrollableWindow(fig)
-    #plt.show()
+    ax1.set_xticklabels(ax1.get_xticklabels(), visible=False)
+    ax2.set_xticklabels(ax2.get_xticklabels(), visible=False)
+    ax3.set_xticklabels(ax3.get_xticklabels(), visible=False)
+    ax4.set_xticklabels(ax4.get_xticklabels(), visible=False)
+    ax5.set_xticklabels(ax5.get_xticklabels(), visible=False)
+
     plt.savefig(path+chain+'_ColorMap.png')
 
 def cutoff_tables(res_path, cons_cutoff, acc_cutoff, chain, col1, col2):
@@ -116,7 +120,7 @@ def cutoff_tables(res_path, cons_cutoff, acc_cutoff, chain, col1, col2):
     for r in df3.iterrows():
         if (int(r[1]['res']) <= int(list(df2['res'])[-1])):
             dico['conservation'].append(r[1]['conservation score'])
-            if r[1]['conservation score'] > 0.8:
+            if r[1]['conservation score'] > cons_cutoff:
                 dico['conserv_cutoff'].append(1)
             else:
                 dico['conserv_cutoff'].append(0)
@@ -126,11 +130,14 @@ def cutoff_tables(res_path, cons_cutoff, acc_cutoff, chain, col1, col2):
                 dico['interaction'].append(0)
             dico['access_solo'].append(float(df2.loc[(df2['res'] == r[1]['res'])]['solo access']))
             dico['access_complex'].append(float(df2.loc[(df2['res'] == r[1]['res'])]['complex access']))
-            if float(df2.loc[(df2['res'] == r[1]['res'])]['acc_pourcentage']) > 70:
+            if float(df2.loc[(df2['res'] == r[1]['res'])]['acc_pourcentage']) > acc_cutoff:
                 dico['access_cutoff'].append(1)
             elif float(df2.loc[(df2['res'] == r[1]['res'])]['solo access']) != 0:
                 if (df2['solo access'].max()/float(df2.loc[(df2['res'] == r[1]['res'])]['solo access'])) < 1.6:
-                    dico['access_cutoff'].append(1)
+                    if float(df2.loc[(df2['res'] == r[1]['res'])]['acc_pourcentage']) > acc_cutoff/3:
+                        dico['access_cutoff'].append(1)
+                    else:
+                        dico['access_cutoff'].append(0)
                 else:
                     dico['access_cutoff'].append(0)
             else:
@@ -149,8 +156,6 @@ def cutoff_tables(res_path, cons_cutoff, acc_cutoff, chain, col1, col2):
     access_trio_df = df5_transposed.iloc[[3]]
     diff_access = df5_transposed.iloc[[4]]
     prot = res_path.split('/')[-2].split('_')[0]
-    print(res_path)
-    print(prot)
     inter_chains = list(df1['chain2'].unique())
 
     colors = ['white', col1]

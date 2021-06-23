@@ -29,6 +29,27 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 
 
+def check_exists_by_xpath(xpath, driver):
+    """
+    The function to check if an element is present on the webdriver.
+
+    Parameters
+    ----------
+    driver : selenium webdriver
+    name : string
+        the name of the element
+
+    Returns
+    -------
+    boolean
+    """
+    try:
+        driver.find_element_by_xpath("//*[contains(text(),'"+xpath+"')]")
+    except NoSuchElementException:
+        return False
+    return True
+
+
 def getDownLoadedFileName(waitTime, driver):
     """
     function made by supputuri
@@ -112,6 +133,9 @@ def download_alignment(driver, query_file, RES_PATH):
     driver.switch_to.frame("aframe")
 
     print("3- Downloading the MAFFT alignment :")
+
+    while(not check_exists_by_xpath('Fasta format', driver)):
+        pass
 
     driver.find_element_by_xpath("//*[contains(text(),'Fasta format')]").click()
 

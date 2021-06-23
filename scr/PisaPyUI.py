@@ -23,6 +23,15 @@ import numpy as np
 import SeqColorMap as scm
 import csv
 import traceback
+import plot as p
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
 
 
 def table_from_csv(filename):
@@ -136,7 +145,7 @@ def create_layouts():
 
         [sg.HorizontalSeparator()],
 
-        [sg.Column(column, size=(860, 230), scrollable=True)]
+        [sg.Column(column, size=(850,240), scrollable=True)]
 
     ]
 
@@ -200,14 +209,30 @@ def create_layouts():
     tab5 = [
 
         [sg.Text("Select CSV file to display"), sg.Input(key='-CSVF-'), sg.FileBrowse('Choose',
-            file_types=(("CSV Files","*.csv"),))],[sg.Button("Display", key='-DISTAB-', use_ttk_buttons=True)],
+            file_types=(("CSV Files","*.csv"),))],[sg.Button("Display", key='-DISTAB-', use_ttk_buttons=True),
+         sg.Text(' '*16+'The file must correspond to the Interaction Sheet')],
         [sg.Table(values=data, headings=header_list,
-            auto_size_columns=True, justification='left', num_rows=45, key='-TABLE-')]
+            auto_size_columns=True, max_col_width=25, justification='middle', num_rows=45, key='-TABLE-')]
+
+    ]
+
+    tab6 = [
+
+        [sg.Text("Select the result folder"),
+         sg.In(size=(25, 1), enable_events=True, key="-STRCT-"),
+         sg.FolderBrowse(size=(11, 1)),],
+        [sg.Radio('Show high conservation', "RADIO1", default=False)],
+        [sg.Radio('Show high accessibility', "RADIO1", default=False)],
+        [sg.Radio('Show high cons & acc', "RADIO1", default=True)],
+        [sg.Text('What proteins to show   '), sg.InputText(size=(25, 1), key="-PRTS-"),
+        sg.Text(' '*50), sg.Button('Show Structure', size=(14, 1), key='-PLOT-', use_ttk_buttons=True)],
+        [sg.HorizontalSeparator()],
+        [sg.Canvas(key='-CANVAS-')]
 
     ]
 
     layout = [[sg.TabGroup([[sg.Tab('PisaPy Params', tab1), sg.Tab('SequenceColorMap', tab3),
-        sg.Tab('CSV', tab5), sg.Tab('Credit', tab4)]])]] 
+        sg.Tab('Structure', tab6), sg.Tab('CSV', tab5), sg.Tab('Credit', tab4)]])]] 
 
     return sg.Window("PisaPy", layout, ttk_theme=ttk_style, finalize=True)
 
@@ -304,6 +329,10 @@ def running():
                 else:
                     data, header_list = table_from_csv(values['-CSVF-'])
                     window['-TABLE-'].update(values=data)
+
+            if event == '-PLOT-':
+                fig = p.the_plot()
+                fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
         window.close()
     except Exception as e:
