@@ -23,8 +23,9 @@ import numpy as np
 import SeqColorMap as scm
 import csv
 import traceback
-import plot as p
+import Prepare_plot as p
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 
 
 def draw_figure(canvas, figure):
@@ -50,6 +51,10 @@ def table_from_csv(filename):
 
     return data, header_list
 
+
+def delete_figure_agg(figure_agg):
+    figure_agg.get_tk_widget().forget()
+    plt.close('all')
 
 def create_layouts():
     """
@@ -223,11 +228,13 @@ def create_layouts():
          sg.FolderBrowse(size=(11, 1)),],
         [sg.Radio('Show high conservation', "RADIO1", default=False)],
         [sg.Radio('Show high accessibility', "RADIO1", default=False)],
-        [sg.Radio('Show high cons & acc', "RADIO1", default=True)],
+        [sg.Radio('Show Interaction', "RADIO1", default=False), 
+        sg.Text(' '*85+"color"), sg.Button("", size=(1, 1), button_color=('black', 'black'), key='Color3')],
+        [sg.Radio('Show high cons & acc & inter', "RADIO1", default=True)],
         [sg.Text('What proteins to show   '), sg.InputText(size=(25, 1), key="-PRTS-"),
         sg.Text(' '*50), sg.Button('Show Structure', size=(14, 1), key='-PLOT-', use_ttk_buttons=True)],
         [sg.HorizontalSeparator()],
-        [sg.Canvas(key='-CANVAS-')]
+        [sg.Text(' '*25),sg.Canvas(key='-CANVAS-')]
 
     ]
 
@@ -245,6 +252,9 @@ def running():
     color = '#039136'
     chooser2 = window['Color2']
     color2 = '#0918d9'
+    chooser3 = window['Color3']
+    color3 = 'black'
+    fig_canvas_agg = None
     i = 0
 
     try:
@@ -286,10 +296,9 @@ def running():
                 rppy.run_pisa(1, values['-FOLDER-']+'/', values['-RES-']+'/')
                 dico = {}
                 for k in values:
-                    for k in values:
-                        if type(k) == str:
-                            if '-PC' in k:
-                                dico[values[k].split()[0]] = values[k].split()[1]
+                    if type(k) == str:
+                        if '-PC' in k:
+                            dico[values[k].split()[0]] = values[k].split()[1]
 
                 rppy.parse_files(1, dico, values['-RES-']+'/')
                 rppy.run_naccess(1, values['-FOLDER-']+'/', values['-FOLDER1-']+'/naccess', values['-RES-']+'/')
@@ -311,6 +320,12 @@ def running():
                 color2 = colors2[1]
                 chooser2.Update(button_color=(color2, color2))
 
+            if event == 'Color3':
+                colors3 = tk.colorchooser.askcolor(
+                        parent=chooser.ParentForm.TKroot, color=color3)
+                color3 = colors3[1]
+                chooser3.Update(button_color=(color3, color3))
+
             if event == '-ADDPROT-':
                 window.extend_layout(window['-COL1-'], [[sg.T('Protein chains'), sg.I(key=f'-PC-{i}-')]])
                 i += 1
@@ -331,8 +346,31 @@ def running():
                     window['-TABLE-'].update(values=data)
 
             if event == '-PLOT-':
-                fig = p.the_plot()
-                fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+                if fig_canvas_agg:
+                    delete_figure_agg(fig_canvas_agg)
+
+                dico = {}
+                for k in values:
+                    if type(k) == str:
+                        if '-PC' in k:
+                            dico[values[k].split()[0]] = values[k].split()[1]
+
+                if values[7]:
+                    fig = p.read_tables(values['-STRCT-'], values["-PRTS-"], dico, 1, values['slider1'],
+                        values['slider2'], color3)
+                    fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+                elif values[8]:
+                    fig = p.read_tables(values['-STRCT-'], values["-PRTS-"], dico, 2, values['slider1'],
+                        values['slider2'], color3)
+                    fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+                elif values[9]:
+                    fig = p.read_tables(values['-STRCT-'], values["-PRTS-"], dico, 3, values['slider1'],
+                        values['slider2'], color3)
+                    fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+                else:
+                    fig = p.read_tables(values['-STRCT-'], values["-PRTS-"], dico, 4, values['slider1'],
+                        values['slider2'], color3)
+                    fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
         window.close()
     except Exception as e:
